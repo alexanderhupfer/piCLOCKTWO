@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import time
 import requests
 import pygame, sys, os
@@ -48,7 +51,7 @@ class Weather(object):
         t0 = self.data[0]
         t1 = self.data[1]
         temp = t0*(1-t) + t1*t
-        tempstring = '%s˚' % round(temp,1)
+        tempstring = u'%s˚' % round(temp,1)
         return tempstring
 
     def get_forecast(self):
@@ -64,7 +67,7 @@ os.environ["SDL_FBDEV"] = "/dev/fb1"
 #os.environ["SDL_MOUSEDEV"] = "/dev/input/eventX"
 
 def get_time_string(localtime):
-    face = '''ESkISTaFÜNF
+    face = u'''ESkISTaFÜNF
 ZEHNZWANZIG
 DREIVIERTEL
 VORfunkNACH
@@ -81,35 +84,35 @@ ZEHNEUNkUHR'''
     #minute = 2
     minute -= minute % 5
     highlights = []
-    highlights.append('ES')
-    highlights.append('IST')
-    minutes = {0:['UHR'],
-               5:['FÜNF','NACH'],
-               10:['ZEHN','NACH'],
-               15:['VIERTEL','NACH'],
-               20:['ZWANZIG','NACH'],
-               25:['FÜNF','VOR','HALB'],
-               30:['HALB'],
-               35:['FÜNF','NACH','HALB'],
-               40:['ZEHN','NACH','HALB'],
-               45:['DREIVIERTEL'],
-               50:['ZEHN','VOR'],
-               55:['FÜNF','VOR']}
-    hours = {0:'ZWÖLF',
-             1:'EINS',
-             2:'ZWEI',
-             3:'DREI',
-             4:'VIER',
-             5:'FÜNF',
-             6:'SECHS',
-             7:'SIEBEN',
-             8:'ACHT',
-             9:'NEUN',
-             10:'ZEHN',
-             11:'ELF'}
+    highlights.append(u'ES')
+    highlights.append(u'IST')
+    minutes = {0:[u'UHR'],
+               5:[u'FÜNF',u'NACH'],
+               10:[u'ZEHN',u'NACH'],
+               15:[u'VIERTEL',u'NACH'],
+               20:[u'ZWANZIG',u'NACH'],
+               25:[u'FÜNF',u'VOR',u'HALB'],
+               30:[u'HALB'],
+               35:[u'FÜNF',u'NACH',u'HALB'],
+               40:[u'ZEHN',u'NACH',u'HALB'],
+               45:[u'DREIVIERTEL'],
+               50:[u'ZEHN',u'VOR'],
+               55:[u'FÜNF',u'VOR']}
+    hours = {0:u'ZWÖLF',
+             1:u'EINS',
+             2:u'ZWEI',
+             3:u'DREI',
+             4:u'VIER',
+             5:u'FÜNF',
+             6:u'SECHS',
+             7:u'SIEBEN',
+             8:u'ACHT',
+             9:u'NEUN',
+             10:u'ZEHN',
+             11:u'ELF'}
 
     if minute == 0:
-        hours.update({1:'EIN'})
+        hours.update({1:u'EIN'})
     for m in minutes[minute]:
         highlights.append(m)
     if minute >= 25:
