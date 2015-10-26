@@ -78,7 +78,7 @@ SECHSmlACHT
 SIEBENZWÖLF
 ZEHNEUNkUHR'''
 
-    hour = localtime.tm_hour + 2
+    hour = localtime.tm_hour
     minute = localtime.tm_min
     #hour = 1
     #minute = 2
