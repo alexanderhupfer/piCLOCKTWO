@@ -1,2 +1,2 @@
 #! /bin/sh
-python3.4 /home/pi/weather-display.py $1
+python /home/pi/piCLOCKTWO/weather-display.py $1

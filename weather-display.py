@@ -9,12 +9,24 @@ import xmltodict
 #from yr.libyr import Yr
 from pygame.locals import *
 import sys
+import subprocess
 
 if sys.argv[-1] == 'stop':
     exit()
 
+out = subprocess.check_output("ls /sys/bus/w1/devices", shell=True)
+global sensor1_id
+sensor1_id = out.split('\n')[0]
+
 url = "https://api.forecast.io/forecast/91edcb26bf4bf674333e73905762e7f4/59.9207260,10.7365420"
 urlmetno = "http://api.met.no/weatherapi/locationforecast/1.9/?lat=59.9207260;lon=10.7365420"
+
+def get_temp_w1():
+    out = subprocess.check_output("tail -n1 /sys/bus/w1/devices/%s/w1_slave" % sensor1_id, shell=True)
+    temp_str = out.split()[-1][2:]
+    temp = float(temp_str) / 1000.
+    tempstring = u'%s˚' % round(temp,1)
+    return tempstring
 
 def get_temp_metno():
     xml = requests.get(urlmetno).text
@@ -178,6 +190,13 @@ while True:
     textpos = text.get_rect()
     textpos.right = 310 
     textpos.centery = 30
+    DISPLAYSURF.blit(text, textpos)
+
+
+    text = tfont.render(get_temp_w1(), 1, WHITE)
+    textpos = text.get_rect()
+    textpos.right = 310
+    textpos.centery = 70
     DISPLAYSURF.blit(text, textpos)
 
     localtime = time.localtime()
