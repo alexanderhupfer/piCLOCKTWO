@@ -10,6 +10,7 @@ import xmltodict
 from pygame.locals import *
 import sys
 import subprocess
+from xml.parsers.expat import ExpatError
 
 if sys.argv[-1] == 'stop':
     exit()
@@ -29,8 +30,18 @@ def get_temp_w1():
     return tempstring
 
 def get_temp_metno():
-    xml = requests.get(urlmetno).text
-    data = xmltodict.parse(xml)
+    try:
+        xml = requests.get(urlmetno).text
+        #with open('/home/pi/piCLOCKTWO/requests.log','w') as f:
+        #    f.write(xml)
+        print('got data %s' % xml[:100])
+        data = xmltodict.parse(xml)
+    except ExpatError:
+        time.sleep(30)
+        print('parsing error, retrying. Data was %s' % xml[:100])
+        xml = requests.get(urlmetno).text
+        data = xmltodict.parse(xml)
+        
     temperatures = []
     for t in data['weatherdata']['product']['time']:
         try:
