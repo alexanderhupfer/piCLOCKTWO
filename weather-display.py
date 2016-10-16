@@ -11,6 +11,7 @@ from pygame.locals import *
 import sys
 import subprocess
 from xml.parsers.expat import ExpatError
+from requests.exceptions import ConnectionError
 
 if sys.argv[-1] == 'stop':
     exit()
@@ -30,17 +31,17 @@ def get_temp_w1():
     return tempstring
 
 def get_temp_metno():
-    try:
-        xml = requests.get(urlmetno).text
-        #with open('/home/pi/piCLOCKTWO/requests.log','w') as f:
-        #    f.write(xml)
-        print('got data %s' % xml[:100])
-        data = xmltodict.parse(xml)
-    except ExpatError:
-        time.sleep(30)
-        print('parsing error, retrying. Data was %s' % xml[:100])
-        xml = requests.get(urlmetno).text
-        data = xmltodict.parse(xml)
+    for backoff in range(10):
+        try:
+            xml = requests.get(urlmetno).text
+            #with open('/home/pi/piCLOCKTWO/requests.log','w') as f:
+            #    f.write(xml)
+            #print('got data %s' % xml[:100])
+            data = xmltodict.parse(xml)
+            break
+        except ExpatError, ConnectionError:
+           time.sleep(2 ** backoff)
+           print('metno connection error, retrying')
         
     temperatures = []
     for t in data['weatherdata']['product']['time']:
@@ -78,7 +79,7 @@ class Weather(object):
         return tempstring
 
     def get_forecast(self):
-        print('api querry...')
+        #print('api querry...')
         #self.data = get_temp_forecastio()
         self.data = get_temp_metno()
 
