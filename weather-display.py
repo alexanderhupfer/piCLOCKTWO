@@ -39,10 +39,9 @@ def get_temp_metno():
             #print('got data %s' % xml[:100])
             data = xmltodict.parse(xml)
             break
-        except ExpatError, ConnectionError:
+        except (ExpatError, ConnectionError) as e:
            time.sleep(2 ** backoff)
            print('metno connection error, retrying')
-        
     temperatures = []
     for t in data['weatherdata']['product']['time']:
         try:
@@ -194,8 +193,10 @@ weather = Weather()
 
 while True:
     DISPLAYSURF.fill(BLACK)
-    font = pygame.font.SysFont("helvetica", 20)
-    tfont = pygame.font.SysFont("helvetica", 40)
+    #font = pygame.font.SysFont("helvetica", 20)
+    #tfont = pygame.font.SysFont("helvetica", 40)
+    font = pygame.font.SysFont("FreeSans", 20)
+    tfont = pygame.font.SysFont("FreeSans", 40)
 
 
     text = tfont.render(weather.refresh(), 1, WHITE)
