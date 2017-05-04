@@ -12,6 +12,8 @@ import sys
 import subprocess
 from xml.parsers.expat import ExpatError
 from requests.exceptions import ConnectionError
+import Adafruit_DHT
+
 
 if sys.argv[-1] == 'stop':
     exit()
@@ -27,8 +29,7 @@ def get_temp_w1():
     out = subprocess.check_output("tail -n1 /sys/bus/w1/devices/%s/w1_slave" % sensor1_id, shell=True)
     temp_str = out.split()[-1][2:]
     temp = float(temp_str) / 1000.
-    tempstring = u'%s˚' % round(temp,1)
-    return tempstring
+    return temp
 
 def get_temp_metno():
     for backoff in range(10):
@@ -198,19 +199,27 @@ while True:
     font = pygame.font.SysFont("FreeSans", 20)
     tfont = pygame.font.SysFont("FreeSans", 40)
 
-
+    dht_humidity, dht_temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, 2)
+    w1_temperature = get_temp_w1()
+    temperature = 0.5*dht_temperature + 0.5*w1_temperature 
     text = tfont.render(weather.refresh(), 1, WHITE)
     textpos = text.get_rect()
     textpos.right = 310 
     textpos.centery = 30
     DISPLAYSURF.blit(text, textpos)
 
-
-    text = tfont.render(get_temp_w1(), 1, WHITE)
+    text = tfont.render(u'%.1f˚' % temperature, 1, WHITE)
     textpos = text.get_rect()
     textpos.right = 310
     textpos.centery = 70
     DISPLAYSURF.blit(text, textpos)
+
+    text = tfont.render('%d%%' % dht_humidity, 1, WHITE)
+    textpos = text.get_rect()
+    textpos.right = 300
+    textpos.centery = 110
+    DISPLAYSURF.blit(text, textpos)
+
 
     localtime = time.localtime()
 
