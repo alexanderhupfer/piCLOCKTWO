@@ -1,2 +1,0 @@
-#! /bin/sh
-python /home/pi/piCLOCKTWO/weather-display.py $1

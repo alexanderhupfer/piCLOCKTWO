@@ -3,6 +3,10 @@
 
 import time
 import requests
+from dateutil.parser import parse
+from dateutil.tz import tzlocal
+from datetime import datetime
+import requests
 import pygame, sys, os
 import pygame.gfxdraw
 import xmltodict
@@ -14,9 +18,18 @@ from xml.parsers.expat import ExpatError
 from requests.exceptions import ConnectionError
 import Adafruit_DHT
 
+import logging
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    filename='logging.log',
+                    filemode='w')
+
 
 if sys.argv[-1] == 'stop':
     exit()
+
+logging.info("startup...")
 
 out = subprocess.check_output("ls /sys/bus/w1/devices", shell=True)
 global sensor1_id
@@ -24,6 +37,7 @@ sensor1_id = out.split('\n')[0]
 
 url = "https://api.forecast.io/forecast/91edcb26bf4bf674333e73905762e7f4/59.9207260,10.7365420"
 urlmetno = "http://api.met.no/weatherapi/locationforecast/1.9/?lat=59.9207260;lon=10.7365420"
+urlthingspeak = "https://api.thingspeak.com/channels/271890/fields/1.json?results=1"
 
 def get_temp_w1():
     out = subprocess.check_output("tail -n1 /sys/bus/w1/devices/%s/w1_slave" % sensor1_id, shell=True)
@@ -60,11 +74,32 @@ def get_temp_forecastio():
         temperatures.append(t)
     return temperatures
     
+def get_temp_thingspeak():
+    json = requests.get(urlthingspeak).json()
+    timestamp = json['feeds'][0]['created_at']
+    temperature = float(json['feeds'][0]['field1'])
+    delta = datetime.now(tzlocal()) - parse(timestamp)
+    if delta.seconds > 600:
+        # stale data, fall back to metno:
+        return None
+    return temperature
+
 
 class Weather(object):
     def __init__(self):
         self.refreshed_this_hour = False
+        self.last_refresh_thingspeak = None
+        self.thingspeak_temp = None
     def refresh(self):
+        if not self.last_refresh_thingspeak:
+            self.thingspeak_temp = get_temp_thingspeak()
+            self.last_refresh_thingspeak = datetime.now(tzlocal())
+        else:
+            delta = datetime.now(tzlocal()) - self.last_refresh_thingspeak
+            if delta.seconds > 60:
+                self.last_refresh_thingspeak = None
+        if self.thingspeak_temp:
+            return u'%s˚' % round(self.thingspeak_temp,1) 
         mins = time.gmtime().tm_min
         if mins < 1:
             self.refreshed_this_hour = False

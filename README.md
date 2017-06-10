@@ -3,11 +3,11 @@ A watch face with temperature display on a small display
 
 Installation:
 
-put clocktwo into /etc/init.d/ (make sure it's executable)
+copy clocktwo.service to /lib/systemd/system/
+make startup.sh executable
 
-then register initscript by:
-
-sudo update-rc.d clocktwo defaults
+enable with systemd: 
+sudo systemctl enable clocktwo.service
 
 set timezone using: sudo dpkg-reconfigure tzdata
 
