@@ -75,7 +75,10 @@ def get_temp_forecastio():
     return temperatures
     
 def get_temp_thingspeak():
-    json = requests.get(urlthingspeak).json()
+    try:
+        json = requests.get(urlthingspeak).json()
+    except ValueError:
+        return None
     timestamp = json['feeds'][0]['created_at']
     temperature = float(json['feeds'][0]['field1'])
     delta = datetime.now(tzlocal()) - parse(timestamp)
