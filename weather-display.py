@@ -10,6 +10,7 @@ import requests
 import pygame, sys, os
 import pygame.gfxdraw
 import xmltodict
+from OpenSSL.SSL import ZeroReturnError
 #from yr.libyr import Yr
 from pygame.locals import *
 import sys
@@ -77,7 +78,7 @@ def get_temp_forecastio():
 def get_temp_thingspeak():
     try:
         json = requests.get(urlthingspeak).json()
-    except ValueError:
+    except ValueError, ZeroReturnError:
         return None
     timestamp = json['feeds'][0]['created_at']
     temperature = float(json['feeds'][0]['field1'])
