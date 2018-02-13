@@ -17,7 +17,7 @@ import sys
 import subprocess
 from xml.parsers.expat import ExpatError
 from requests.exceptions import ConnectionError
-import Adafruit_DHT
+#import Adafruit_DHT
 
 import logging
 
@@ -37,7 +37,7 @@ global sensor1_id
 sensor1_id = out.split('\n')[0]
 
 url = "https://api.forecast.io/forecast/91edcb26bf4bf674333e73905762e7f4/59.9207260,10.7365420"
-urlmetno = "http://api.met.no/weatherapi/locationforecast/1.9/?lat=59.9207260;lon=10.7365420"
+urlmetno = "http://api.met.no/weatherapi/locationforecast/1.9/?lat=48.7773494;lon=9.1570533"
 urlthingspeak = "https://api.thingspeak.com/channels/271890/fields/1.json?results=1"
 
 def get_temp_w1():
@@ -47,17 +47,15 @@ def get_temp_w1():
     return temp
 
 def get_temp_metno():
-    for backoff in range(10):
-        try:
-            xml = requests.get(urlmetno).text
-            #with open('/home/pi/piCLOCKTWO/requests.log','w') as f:
-            #    f.write(xml)
-            #print('got data %s' % xml[:100])
-            data = xmltodict.parse(xml)
-            break
-        except (ExpatError, ConnectionError) as e:
-           time.sleep(2 ** backoff)
-           print('metno connection error, retrying')
+    try:
+        xml = requests.get(urlmetno).text
+        #with open('/home/pi/piCLOCKTWO/requests.log','w') as f:
+        #    f.write(xml)
+        #print('got data %s' % xml[:100])
+        data = xmltodict.parse(xml)
+    except (ExpatError, ConnectionError) as e:
+        print('connectionError')
+        return None
     temperatures = []
     for t in data['weatherdata']['product']['time']:
         try:
@@ -83,7 +81,7 @@ def get_temp_thingspeak():
     timestamp = json['feeds'][0]['created_at']
     temperature = float(json['feeds'][0]['field1'])
     delta = datetime.now(tzlocal()) - parse(timestamp)
-    if delta.seconds > 600:
+    if delta.seconds > 1200:
         # stale data, fall back to metno:
         return None
     return temperature
@@ -111,10 +109,13 @@ class Weather(object):
             self.get_forecast()
             self.refreshed_this_hour = True
         t = mins/60.
-        t0 = self.data[0]
-        t1 = self.data[1]
-        temp = t0*(1-t) + t1*t
-        tempstring = u'%s˚' % round(temp,1)
+        if self.data:
+            t0 = self.data[0]
+            t1 = self.data[1]
+            temp = t0*(1-t) + t1*t
+            tempstring = u'%s˚' % round(temp,1)
+        else:
+            tempstring = u''
         return tempstring
 
     def get_forecast(self):
@@ -238,26 +239,26 @@ while True:
     font = pygame.font.SysFont("FreeSans", 20)
     tfont = pygame.font.SysFont("FreeSans", 40)
 
-    dht_humidity, dht_temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, 2)
-    w1_temperature = get_temp_w1()
-    temperature = 0.5*dht_temperature + 0.5*w1_temperature 
+    #dht_humidity, dht_temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, 2)
+    #w1_temperature = get_temp_w1()
+    #temperature = 0.5*dht_temperature + 0.5*w1_temperature 
     text = tfont.render(weather.refresh(), 1, WHITE)
     textpos = text.get_rect()
     textpos.right = 310 
     textpos.centery = 30
     DISPLAYSURF.blit(text, textpos)
 
-    text = tfont.render(u'%.1f˚' % temperature, 1, WHITE)
-    textpos = text.get_rect()
-    textpos.right = 310
-    textpos.centery = 70
-    DISPLAYSURF.blit(text, textpos)
+    #text = tfont.render(u'%.1f˚' % temperature, 1, WHITE)
+    #textpos = text.get_rect()
+    #textpos.right = 310
+    #textpos.centery = 70
+    #DISPLAYSURF.blit(text, textpos)
 
-    text = tfont.render('%d%%' % dht_humidity, 1, WHITE)
-    textpos = text.get_rect()
-    textpos.right = 300
-    textpos.centery = 110
-    DISPLAYSURF.blit(text, textpos)
+    #text = tfont.render('%d%%' % dht_humidity, 1, WHITE)
+    #textpos = text.get_rect()
+    #textpos.right = 300
+    #textpos.centery = 110
+    #DISPLAYSURF.blit(text, textpos)
 
 
     localtime = time.localtime()
